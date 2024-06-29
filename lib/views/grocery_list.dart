@@ -17,10 +17,10 @@ class GroceryList extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Grocery List'),
+        title: const Text('Grocery List'),
         actions: [
           IconButton(
-            icon: Icon(Icons.add),
+            icon: const Icon(Icons.add),
             onPressed: _addItem,
           ),
         ],
