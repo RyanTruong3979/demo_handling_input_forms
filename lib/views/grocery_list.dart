@@ -31,8 +31,22 @@ class _GroceryListState extends State<GroceryList> {
     });
   }
 
+  void _removeItem(String id) {
+    setState(() {
+      _groceryItems.removeWhere((item) => item.id == id);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
+    Widget content = Container(
+      alignment: Alignment.center,
+      child: const Text(
+        'No items added yet!',
+        style: TextStyle(fontSize: 20),
+      ),
+    );
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Grocery List'),
@@ -46,26 +60,22 @@ class _GroceryListState extends State<GroceryList> {
       body: _groceryItems.isNotEmpty
           ? ListView.builder(
               itemCount: _groceryItems.length,
-              itemBuilder: (context, index) {
-                final item = _groceryItems[index];
-                log('_groceryItems: $_groceryItems');
-
-                return ListTile(
-                    title: Text(item.name),
-                    subtitle: Text('Quantity: ${item.quantity}'),
-                    // trailing: Text(item.quantity.toString()),
-                    leading: CircleAvatar(
-                      backgroundColor: item.category.color,
-                    ));
-              },
-            )
-          : Container(
-              alignment: Alignment.center,
-              child: const Text(
-                'No items added yet!',
-                style: TextStyle(fontSize: 20),
+              itemBuilder: (context, index) => Dismissible(
+                onDismissed: (direction) {
+                  _removeItem(_groceryItems[index].id);
+                },
+                key: ValueKey(_groceryItems[index].id),
+                child: ListTile(
+                  title: Text(_groceryItems[index].name),
+                  subtitle: Text('Quantity: ${_groceryItems[index].quantity}'),
+                  // trailing: Text(item.quantity.toString()),
+                  leading: CircleAvatar(
+                    backgroundColor: _groceryItems[index].category.color,
+                  ),
+                ),
               ),
-            ),
+            )
+          : content,
     );
   }
 }

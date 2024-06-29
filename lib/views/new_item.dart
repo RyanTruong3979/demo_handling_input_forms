@@ -20,6 +20,8 @@ class _NewItemState extends State<NewItem> {
   var _selectedCategory = categories[Categories.vegetables]!;
 
   void _saveItem() {
+    // Su dung _formKey.currentState để truy cập vào FormState và gọi phương
+    // thức validate() để kiểm tra xem form có hợp lệ không.
     // Validate returns true if the form is valid, or false otherwise
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
