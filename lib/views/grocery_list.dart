@@ -43,21 +43,29 @@ class _GroceryListState extends State<GroceryList> {
           ),
         ],
       ),
-      body: ListView.builder(
-        itemCount: _groceryItems.length,
-        itemBuilder: (context, index) {
-          final item = _groceryItems[index];
-          log('_groceryItems: $_groceryItems');
+      body: _groceryItems.isNotEmpty
+          ? ListView.builder(
+              itemCount: _groceryItems.length,
+              itemBuilder: (context, index) {
+                final item = _groceryItems[index];
+                log('_groceryItems: $_groceryItems');
 
-          return ListTile(
-              title: Text(item.name),
-              subtitle: Text('Quantity: ${item.quantity}'),
-              // trailing: Text(item.quantity.toString()),
-              leading: CircleAvatar(
-                backgroundColor: item.category.color,
-              ));
-        },
-      ),
+                return ListTile(
+                    title: Text(item.name),
+                    subtitle: Text('Quantity: ${item.quantity}'),
+                    // trailing: Text(item.quantity.toString()),
+                    leading: CircleAvatar(
+                      backgroundColor: item.category.color,
+                    ));
+              },
+            )
+          : Container(
+              alignment: Alignment.center,
+              child: const Text(
+                'No items added yet!',
+                style: TextStyle(fontSize: 20),
+              ),
+            ),
     );
   }
 }
