@@ -1,6 +1,7 @@
 import 'dart:developer';
 
 import 'package:demo_handling_input_forms/models/category.dart';
+import 'package:demo_handling_input_forms/models/grocery_item.dart';
 import 'package:flutter/material.dart';
 import 'package:demo_handling_input_forms/data/categories.dart';
 
@@ -22,13 +23,21 @@ class _NewItemState extends State<NewItem> {
     // Validate returns true if the form is valid, or false otherwise
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
-      log('_enteredQuantity: $_enteredQuantity');
-      log('_selectedCategory: ${_selectedCategory.name}');
+
+      // Use the Navigator to pop the screen and pass the data back to the previous screen
+      Navigator.of(context).pop(
+        GroceryItem(
+          id: DateTime.now().toString(),
+          name: _enteredName,
+          quantity: _enteredQuantity,
+          category: _selectedCategory,
+        ),
+      );
 
       // If the form is valid, display a snackbar. In the real world, you'd save the data to a database
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Processing Data')),
-      );
+      // ScaffoldMessenger.of(context).showSnackBar(
+      //   const SnackBar(content: Text('Processing Data')),
+      // );
     }
   }
 
