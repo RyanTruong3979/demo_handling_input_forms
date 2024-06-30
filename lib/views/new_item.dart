@@ -1,9 +1,11 @@
+import 'dart:convert';
 import 'dart:developer';
 
 import 'package:demo_handling_input_forms/models/category.dart';
 import 'package:demo_handling_input_forms/models/grocery_item.dart';
 import 'package:flutter/material.dart';
 import 'package:demo_handling_input_forms/data/categories.dart';
+import 'package:http/http.dart' as http;
 
 class NewItem extends StatefulWidget {
   const NewItem({super.key});
@@ -19,22 +21,49 @@ class _NewItemState extends State<NewItem> {
   var _enteredQuantity = 1;
   var _selectedCategory = categories[Categories.vegetables]!;
 
-  void _saveItem() {
+  void _saveItem() async {
     // Su dung _formKey.currentState để truy cập vào FormState và gọi phương
     // thức validate() để kiểm tra xem form có hợp lệ không.
     // Validate returns true if the form is valid, or false otherwise
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
 
-      // Use the Navigator to pop the screen and pass the data back to the previous screen
-      Navigator.of(context).pop(
-        GroceryItem(
-          id: DateTime.now().toString(),
-          name: _enteredName,
-          quantity: _enteredQuantity,
-          category: _selectedCategory,
+      // Create url to post data
+      final url = Uri.https(
+          'shopping-list-demo-5b845-default-rtdb.asia-southeast1'
+              '.firebasedatabase.app',
+          'shopping_list.json');
+
+      final response = await http.post(
+        url,
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+        body: jsonEncode(
+          {
+            'name': _enteredName,
+            'quantity': _enteredQuantity,
+            'category': _selectedCategory.name,
+          },
         ),
       );
+
+      log('Response: ${response.statusCode}');
+
+      // Check if the context is still mounted
+      if (!context.mounted) return;
+
+      Navigator.of(context).pop();
+
+      // Use the Navigator to pop the screen and pass the data back to the previous screen
+      // Navigator.of(context).pop(
+      //   GroceryItem(
+      //     id: DateTime.now().toString(),
+      //     name: _enteredName,
+      //     quantity: _enteredQuantity,
+      //     category: _selectedCategory,
+      //   ),
+      // );
 
       // If the form is valid, display a snackbar. In the real world, you'd save the data to a database
       // ScaffoldMessenger.of(context).showSnackBar(

@@ -1,9 +1,12 @@
+import 'dart:convert';
 import 'dart:developer';
 
+import 'package:demo_handling_input_forms/data/categories.dart';
 import 'package:demo_handling_input_forms/models/grocery_item.dart';
 import 'package:flutter/material.dart';
 import 'package:demo_handling_input_forms/data/dummy_items.dart';
 import 'package:demo_handling_input_forms/views/new_item.dart';
+import 'package:http/http.dart' as http;
 
 class GroceryList extends StatefulWidget {
   const GroceryList({super.key});
@@ -13,7 +16,53 @@ class GroceryList extends StatefulWidget {
 }
 
 class _GroceryListState extends State<GroceryList> {
-  final List<GroceryItem> _groceryItems = [];
+  List<GroceryItem> _groceryItems = [];
+
+  @override
+  void initState() {
+    super.initState();
+    // get data from the server
+    _fetchData();
+  }
+
+  // Get data from the server
+  void _fetchData() async {
+    final response = await http.get(
+      Uri.parse('https://shopping-list-demo-5b845-default-rtdb'
+          '.asia-southeast1.firebasedatabase.app/shopping_list.json'),
+    );
+
+    // log('_fetchData: ${response.body}');
+
+    List<GroceryItem> _loadedItems = <GroceryItem>[];
+
+    // Convert the response body to a list of maps
+    // Exp: {"-O0cQsxkWDlJknittrqs":{"category":"Dairy","name":"Milk","quantity":11},
+    // With "-O0cQsxkWDlJknittrqs" => String
+    // {"category":"Dairy","name":"Milk","quantity":11} => Map<String, dynamic>
+    final Map<String, dynamic> listData = jsonDecode(response.body);
+
+    //
+    for (final item in listData.entries) {
+      final category = categories.entries
+          .firstWhere((ite) => ite.value.name == item.value['category'])
+          .value;
+      _loadedItems.add(
+        GroceryItem(
+          id: item.key,
+          name: item.value['name'],
+          quantity: item.value['quantity'],
+          category: category,
+        ),
+      );
+    }
+
+    log('_loadedItems: $_loadedItems');
+
+    setState(() {
+      _groceryItems = _loadedItems;
+    });
+  }
 
   void _addItem() async {
     final newItem = await Navigator.of(context).push<GroceryItem>(
@@ -22,13 +71,16 @@ class _GroceryListState extends State<GroceryList> {
       ),
     );
 
-    if (newItem == null) {
-      return;
-    }
+    // if (newItem == null) {
+    //   return;
+    // }
+    //
+    // setState(() {
+    //   _groceryItems.add(newItem);
+    // });
 
-    setState(() {
-      _groceryItems.add(newItem);
-    });
+    // get data from the server
+    _fetchData();
   }
 
   void _removeItem(String id) {
