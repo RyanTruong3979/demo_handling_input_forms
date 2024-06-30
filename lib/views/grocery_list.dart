@@ -16,6 +16,7 @@ class GroceryList extends StatefulWidget {
 
 class _GroceryListState extends State<GroceryList> {
   List<GroceryItem> _groceryItems = [];
+  bool _isLoading = true;
 
   @override
   void initState() {
@@ -60,6 +61,7 @@ class _GroceryListState extends State<GroceryList> {
 
     setState(() {
       _groceryItems = _loadedItems;
+      _isLoading = false;
     });
   }
 
@@ -95,6 +97,32 @@ class _GroceryListState extends State<GroceryList> {
       ),
     );
 
+    if (_isLoading) {
+      content = const Center(
+        child: CircularProgressIndicator(),
+      );
+    }
+
+    if (_groceryItems.isNotEmpty) {
+      content = ListView.builder(
+        itemCount: _groceryItems.length,
+        itemBuilder: (context, index) => Dismissible(
+          onDismissed: (direction) {
+            _removeItem(_groceryItems[index].id);
+          },
+          key: ValueKey(_groceryItems[index].id),
+          child: ListTile(
+            title: Text(_groceryItems[index].name),
+            subtitle: Text('Quantity: ${_groceryItems[index].quantity}'),
+            // trailing: Text(item.quantity.toString()),
+            leading: CircleAvatar(
+              backgroundColor: _groceryItems[index].category.color,
+            ),
+          ),
+        ),
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Grocery List'),
@@ -105,25 +133,7 @@ class _GroceryListState extends State<GroceryList> {
           ),
         ],
       ),
-      body: _groceryItems.isNotEmpty
-          ? ListView.builder(
-              itemCount: _groceryItems.length,
-              itemBuilder: (context, index) => Dismissible(
-                onDismissed: (direction) {
-                  _removeItem(_groceryItems[index].id);
-                },
-                key: ValueKey(_groceryItems[index].id),
-                child: ListTile(
-                  title: Text(_groceryItems[index].name),
-                  subtitle: Text('Quantity: ${_groceryItems[index].quantity}'),
-                  // trailing: Text(item.quantity.toString()),
-                  leading: CircleAvatar(
-                    backgroundColor: _groceryItems[index].category.color,
-                  ),
-                ),
-              ),
-            )
-          : content,
+      body: content,
     );
   }
 }

@@ -20,6 +20,7 @@ class _NewItemState extends State<NewItem> {
   var _enteredName = '';
   var _enteredQuantity = 1;
   var _selectedCategory = categories[Categories.vegetables]!;
+  bool _isLoading = false;
 
   void _saveItem() async {
     // Su dung _formKey.currentState để truy cập vào FormState và gọi phương
@@ -27,7 +28,9 @@ class _NewItemState extends State<NewItem> {
     // Validate returns true if the form is valid, or false otherwise
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
-
+      setState(() {
+        _isLoading = true;
+      });
       // Create url to post data
       final url = Uri.https(
           'shopping-list-demo-5b845-default-rtdb.asia-southeast1'
@@ -169,15 +172,23 @@ class _NewItemState extends State<NewItem> {
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   TextButton(
-                    onPressed: () {
-                      _formKey.currentState!.reset();
-                    },
+                    onPressed: _isLoading
+                        ? null
+                        : () {
+                            _formKey.currentState!.reset();
+                          },
                     child: const Text('Reset'),
                   ),
                   // For submit form
                   ElevatedButton(
                     onPressed: _saveItem,
-                    child: const Text('Add Item'),
+                    child: _isLoading
+                        ? const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator())
+                        : const Text('Add '
+                            'Item'),
                   ),
                 ],
               )
