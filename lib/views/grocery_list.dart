@@ -17,6 +17,7 @@ class GroceryList extends StatefulWidget {
 class _GroceryListState extends State<GroceryList> {
   List<GroceryItem> _groceryItems = [];
   bool _isLoading = true;
+  String? _error;
 
   @override
   void initState() {
@@ -28,11 +29,18 @@ class _GroceryListState extends State<GroceryList> {
   // Get data from the server
   void _fetchData() async {
     final response = await http.get(
-      Uri.parse('https://shopping-list-demo-5b845-default-rtdb'
-          '.asia-southeast1.firebasedatabase.app/shopping_list.json'),
+      Uri.https(
+          'shopping-list-demo-5b845-default-rtdb.asia-southeast1.firebasedatabase.app',
+          '/shopping_list.json'),
     );
 
-    // log('_fetchData: ${response.body}');
+    if (response.statusCode != 200) {
+      setState(() {
+        _error = 'Failed to load data';
+        _isLoading = false;
+      });
+      return;
+    }
 
     List<GroceryItem> _loadedItems = <GroceryItem>[];
 
@@ -81,10 +89,36 @@ class _GroceryListState extends State<GroceryList> {
     });
   }
 
-  void _removeItem(String id) {
+  void _removeItem(GroceryItem item) async {
+    final index = _groceryItems.indexOf(item);
+
     setState(() {
-      _groceryItems.removeWhere((item) => item.id == id);
+      _groceryItems.remove(item);
     });
+    log('index: $index');
+
+    final respone = await http.delete(
+      Uri.https(
+          'shopping-list-demo-5b845-default-rtdb.asia-southeast1'
+              '.firebasedatabase.app',
+          'shopping_list/${item.id}.json'),
+    );
+
+    if (respone.statusCode != 200) {
+      setState(() {
+        _error = 'Failed to delete data';
+        _isLoading = false;
+        _groceryItems.insert(index, item);
+      });
+
+      // Show a snackbar when an error occurs
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(_error!),
+        ),
+      );
+      return;
+    }
   }
 
   @override
@@ -103,12 +137,21 @@ class _GroceryListState extends State<GroceryList> {
       );
     }
 
+    if (_error != null) {
+      content = Center(
+        child: Text(
+          _error!,
+          style: const TextStyle(fontSize: 20),
+        ),
+      );
+    }
+
     if (_groceryItems.isNotEmpty) {
       content = ListView.builder(
         itemCount: _groceryItems.length,
         itemBuilder: (context, index) => Dismissible(
           onDismissed: (direction) {
-            _removeItem(_groceryItems[index].id);
+            _removeItem(_groceryItems[index]);
           },
           key: ValueKey(_groceryItems[index].id),
           child: ListTile(
