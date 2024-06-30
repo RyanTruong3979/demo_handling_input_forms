@@ -4,7 +4,6 @@ import 'dart:developer';
 import 'package:demo_handling_input_forms/data/categories.dart';
 import 'package:demo_handling_input_forms/models/grocery_item.dart';
 import 'package:flutter/material.dart';
-import 'package:demo_handling_input_forms/data/dummy_items.dart';
 import 'package:demo_handling_input_forms/views/new_item.dart';
 import 'package:http/http.dart' as http;
 
@@ -71,16 +70,13 @@ class _GroceryListState extends State<GroceryList> {
       ),
     );
 
-    // if (newItem == null) {
-    //   return;
-    // }
-    //
-    // setState(() {
-    //   _groceryItems.add(newItem);
-    // });
+    if (newItem == null) {
+      return;
+    }
 
-    // get data from the server
-    _fetchData();
+    setState(() {
+      _groceryItems.add(newItem);
+    });
   }
 
   void _removeItem(String id) {

@@ -47,23 +47,20 @@ class _NewItemState extends State<NewItem> {
           },
         ),
       );
-
-      log('Response: ${response.statusCode}');
+      final Map<String, dynamic> restData = jsonDecode(response.body);
 
       // Check if the context is still mounted
       if (!context.mounted) return;
 
-      Navigator.of(context).pop();
-
       // Use the Navigator to pop the screen and pass the data back to the previous screen
-      // Navigator.of(context).pop(
-      //   GroceryItem(
-      //     id: DateTime.now().toString(),
-      //     name: _enteredName,
-      //     quantity: _enteredQuantity,
-      //     category: _selectedCategory,
-      //   ),
-      // );
+      Navigator.of(context).pop(
+        GroceryItem(
+          id: restData['name'],
+          name: _enteredName,
+          quantity: _enteredQuantity,
+          category: _selectedCategory,
+        ),
+      );
 
       // If the form is valid, display a snackbar. In the real world, you'd save the data to a database
       // ScaffoldMessenger.of(context).showSnackBar(
