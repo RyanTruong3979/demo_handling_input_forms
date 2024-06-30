@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:developer';
 
@@ -16,38 +17,40 @@ class GroceryList extends StatefulWidget {
 
 class _GroceryListState extends State<GroceryList> {
   List<GroceryItem> _groceryItems = [];
-  bool _isLoading = true;
+  // bool _isLoading = true;
+  late Future<List<GroceryItem>> _loadedItems;
   String? _error;
 
   @override
   void initState() {
     super.initState();
     // get data from the server
-    _fetchData();
+    _loadedItems = _fetchData();
   }
 
   // Get data from the server
-  void _fetchData() async {
+  Future<List<GroceryItem>> _fetchData() async {
     final response = await http.get(
       Uri.https(
-          'shopping-list-demo-5b845-default-rtdb.asia-southeast1.firebasedatabase.app',
+          'shopping-list-demo-5b845-default-rtdb.asia-southeast1'
+              '.firebasedatabase.app',
           '/shopping_list.json'),
     );
 
     if (response.statusCode != 200) {
-      setState(() {
-        _error = 'Failed to load data';
-        _isLoading = false;
-      });
-      return;
+      // setState(() {
+      //   _error = 'Failed to load data';
+      //   _isLoading = false;
+      // });
+      throw Exception('Failed to load data');
     }
 
     if (response.body == 'null') {
-      setState(() {
-        _error = 'No items added yet!';
-        _isLoading = false;
-      });
-      return;
+      // setState(() {
+      //   _error = 'No items added yet!';
+      //   _isLoading = false;
+      // });
+      return [];
     }
 
     List<GroceryItem> _loadedItems = <GroceryItem>[];
@@ -75,10 +78,18 @@ class _GroceryListState extends State<GroceryList> {
 
     log('_loadedItems: $_loadedItems');
 
-    setState(() {
-      _groceryItems = _loadedItems;
-      _isLoading = false;
-    });
+    // setState(() {
+    //   _groceryItems = _loadedItems;
+    //   _isLoading = false;
+    // });
+    return _loadedItems;
+
+    // catch (e) {
+    //   setState(() {
+    //     _error = 'Failed something, please try again!';
+    //     _isLoading = false;
+    //   });
+    // }
   }
 
   void _addItem() async {
@@ -114,7 +125,7 @@ class _GroceryListState extends State<GroceryList> {
     if (respone.statusCode != 200) {
       setState(() {
         _error = 'Failed to delete data';
-        _isLoading = false;
+        // _isLoading = false;
         _groceryItems.insert(index, item);
       });
 
@@ -130,60 +141,104 @@ class _GroceryListState extends State<GroceryList> {
 
   @override
   Widget build(BuildContext context) {
-    Widget content = Container(
-      alignment: Alignment.center,
-      child: const Text(
-        'No items added yet!',
-        style: TextStyle(fontSize: 20),
-      ),
-    );
-
-    if (_isLoading) {
-      content = const Center(
-        child: CircularProgressIndicator(),
-      );
-    }
-
-    if (_error != null) {
-      content = Center(
-        child: Text(
-          _error!,
-          style: const TextStyle(fontSize: 20),
-        ),
-      );
-    }
-
-    if (_groceryItems.isNotEmpty) {
-      content = ListView.builder(
-        itemCount: _groceryItems.length,
-        itemBuilder: (context, index) => Dismissible(
-          onDismissed: (direction) {
-            _removeItem(_groceryItems[index]);
-          },
-          key: ValueKey(_groceryItems[index].id),
-          child: ListTile(
-            title: Text(_groceryItems[index].name),
-            subtitle: Text('Quantity: ${_groceryItems[index].quantity}'),
-            // trailing: Text(item.quantity.toString()),
-            leading: CircleAvatar(
-              backgroundColor: _groceryItems[index].category.color,
-            ),
-          ),
-        ),
-      );
-    }
+    // Widget content = Container(
+    //   alignment: Alignment.center,
+    //   child: const Text(
+    //     'No items added yet!',
+    //     style: TextStyle(fontSize: 20),
+    //   ),
+    // );
+    //
+    // // if (_isLoading) {
+    // //   content = const Center(
+    // //     child: CircularProgressIndicator(),
+    // //   );
+    // // }
+    //
+    // if (_error != null) {
+    //   content = Center(
+    //     child: Text(
+    //       _error!,
+    //       style: const TextStyle(fontSize: 20),
+    //     ),
+    //   );
+    // }
+    //
+    // if (_groceryItems.isNotEmpty) {
+    //   content = ListView.builder(
+    //     itemCount: _groceryItems.length,
+    //     itemBuilder: (context, index) => Dismissible(
+    //       onDismissed: (direction) {
+    //         _removeItem(_groceryItems[index]);
+    //       },
+    //       key: ValueKey(_groceryItems[index].id),
+    //       child: ListTile(
+    //         title: Text(_groceryItems[index].name),
+    //         subtitle: Text('Quantity: ${_groceryItems[index].quantity}'),
+    //         // trailing: Text(item.quantity.toString()),
+    //         leading: CircleAvatar(
+    //           backgroundColor: _groceryItems[index].category.color,
+    //         ),
+    //       ),
+    //     ),
+    //   );
+    // }
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Grocery List'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.add),
-            onPressed: _addItem,
-          ),
-        ],
-      ),
-      body: content,
-    );
+        appBar: AppBar(
+          title: const Text('Grocery List'),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.add),
+              onPressed: _addItem,
+            ),
+          ],
+        ),
+        body: FutureBuilder(
+          future: _loadedItems,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(
+                child: CircularProgressIndicator(),
+              );
+            }
+
+            if (snapshot.hasError) {
+              return const Center(
+                child: Text(
+                  'Failed to load data',
+                  style: TextStyle(fontSize: 20),
+                ),
+              );
+            }
+
+            if (snapshot.data!.isEmpty) {
+              return const Center(
+                child: Text(
+                  'No items added yet!',
+                  style: TextStyle(fontSize: 20),
+                ),
+              );
+            }
+
+            return ListView.builder(
+              itemCount: snapshot.data!.length,
+              itemBuilder: (context, index) => Dismissible(
+                onDismissed: (direction) {
+                  _removeItem(snapshot.data![index]);
+                },
+                key: ValueKey(snapshot.data![index].id),
+                child: ListTile(
+                  title: Text(snapshot.data![index].name),
+                  subtitle: Text('Quantity: ${snapshot.data![index].quantity}'),
+                  // trailing: Text(item.quantity.toString()),
+                  leading: CircleAvatar(
+                    backgroundColor: snapshot.data![index].category.color,
+                  ),
+                ),
+              ),
+            );
+          },
+        ));
   }
 }
