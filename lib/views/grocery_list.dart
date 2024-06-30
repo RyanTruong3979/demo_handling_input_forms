@@ -42,6 +42,14 @@ class _GroceryListState extends State<GroceryList> {
       return;
     }
 
+    if (response.body == 'null') {
+      setState(() {
+        _error = 'No items added yet!';
+        _isLoading = false;
+      });
+      return;
+    }
+
     List<GroceryItem> _loadedItems = <GroceryItem>[];
 
     // Convert the response body to a list of maps
@@ -95,7 +103,6 @@ class _GroceryListState extends State<GroceryList> {
     setState(() {
       _groceryItems.remove(item);
     });
-    log('index: $index');
 
     final respone = await http.delete(
       Uri.https(
